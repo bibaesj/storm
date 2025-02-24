@@ -22,27 +22,40 @@ def get_region(lat, lon):
     else:
         return "Gwangju"
 
-MEAN_TARGET_SIMILARITY = 0.6937
+
+MEAN_TARGET_SIMILARITY = 0.8450
+
+weight_direction = 0.5002
+weight_speed = 0.4628
+weight_issue = 0.2955
+
+mean_direction = 286.91
+mean_speed = 15.89
+mean_direction_sin = np.sin(np.radians(mean_direction))
+mean_direction_cos = np.cos(np.radians(mean_direction))
 
 def calculate_weighted_similarity(direction, speed, issue):
     direction_sin = np.sin(np.radians(direction))
     direction_cos = np.cos(np.radians(direction))
 
-    direction_similarity = (direction_sin * -0.6971 + direction_cos * 0.2119)
+    direction_similarity = (direction_sin * mean_direction_sin + 
+                            direction_cos * mean_direction_cos)
 
     max_speed_diff = 50  
-    speed_similarity = 1 - (np.abs(speed - 15.888) / max_speed_diff)
+    speed_similarity = 1 - (np.abs(speed - mean_speed) / max_speed_diff)
 
     issue_similarity = 1 if issue == 1 else 0
 
     weighted_similarity = (
-        0.5898 * speed_similarity +
-        0.2343 * direction_similarity +
-        0.1759 * issue_similarity
+        weight_speed * speed_similarity +
+        weight_direction * direction_similarity +
+        weight_issue * issue_similarity
     )
 
     probability = weighted_similarity * 100
     return weighted_similarity, probability
+
+
 
 st.set_page_config(page_title="STORM - 풍선 예측 및 이동 경로", layout="wide")
 
@@ -76,7 +89,7 @@ if st.session_state.page == "main":
     **📊 분석 방식**
     1. 사용자가 입력한 기상 조건을 **과거 실제 풍선 부양이 있었던 날**과 비교하여 유사도를 계산합니다.  
     2. 기상 데이터가 과거 풍선 부양 사례와 유사할수록 **높은 확률로 풍선이 부양될 가능성이 있음**을 나타냅니다.  
-    3. 계산된 유사도는 **평균 유사도(0.6937)**를 기준으로 판단됩니다:  
+    3. 계산된 유사도는 **평균 유사도(0.845)**를 기준으로 판단됩니다:  
        - **📈 평균 이상:** 풍선이 부양될 가능성이 높음  
        - **📉 평균 이하:** 풍선이 부양되지 않을 가능성이 높음  
 
